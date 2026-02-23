@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+const password = "musang2026";  // change this
+
+let userInput = prompt("Enter password:");
+
+if (userInput !== password) {
+    document.write("Access Denied");
+    document.body.innerHTML = "";
+} 
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FSRR–SOCOM Satellite Training Site — Site Selection & Facility Layout</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--od-green:#3B4A2F;--od-green-dark:#2A3621;--khaki:#C4B17D;--khaki-light:#D9CFA5;--cream:#F5F1E6;--red-glow:#C13B1B;--gold:#C9A93E;--gold-bright:#E5C551;--steel:#4A5568;--charcoal:#1A1A1A;--cyan:#00CED1;--blue-mil:#4A90D9;--sniper:#FF6B35;--sr:#8B5CF6;--joint:#22D3EE}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-snap-type:y mandatory}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--charcoal);color:var(--cream);overflow-x:hidden}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(26,26,26,0.94);backdrop-filter:blur(12px);border-bottom:1px solid rgba(196,177,125,0.15);padding:0.5rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+nav .brand{font-family:'Oswald',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+nav .brand span{color:var(--khaki-light);font-weight:300}
+nav ul{list-style:none;display:flex;gap:1.2rem;flex-wrap:wrap}
+nav ul li a{font-family:'Oswald',sans-serif;font-weight:400;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--khaki);text-decoration:none;transition:color 0.3s}
+nav ul li a:hover{color:var(--gold-bright)}
+
+section{min-height:100vh;scroll-snap-align:start;position:relative;display:flex;flex-direction:column;justify-content:center;padding:5rem 4vw 3rem}
+.hero{background:linear-gradient(160deg,var(--od-green-dark) 0%,var(--charcoal) 60%,#1a1510 100%);text-align:center;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 800px 600px at 20% 30%,rgba(59,74,47,0.4),transparent),radial-gradient(ellipse 600px 400px at 80% 70%,rgba(139,37,0,0.15),transparent);pointer-events:none}
+.hero .content{position:relative;z-index:2}
+.hero .classification{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:5px;text-transform:uppercase;color:var(--red-glow);margin-bottom:1.5rem;animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:0.7}50%{opacity:1}}
+.hero .super-title{font-family:'Oswald',sans-serif;font-weight:300;font-size:0.85rem;letter-spacing:6px;text-transform:uppercase;color:var(--gold);margin-bottom:0.8rem}
+.hero h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(2rem,4.5vw,3.6rem);letter-spacing:2px;text-transform:uppercase;color:var(--cream);line-height:1.1;margin-bottom:1rem}
+.hero h1 em{font-style:normal;color:var(--gold-bright);text-shadow:0 0 30px rgba(201,169,62,0.3)}
+.hero .subtitle{font-size:1.05rem;color:var(--khaki-light);max-width:750px;margin:0 auto 1.5rem;line-height:1.6}
+.hero .divider{width:100px;height:2px;background:var(--gold);margin:0 auto 1.5rem;opacity:0.6}
+.hero .meta{font-family:'Oswald',sans-serif;font-weight:300;font-size:0.75rem;letter-spacing:2px;color:var(--steel)}
+.mission-pills{display:flex;gap:0.8rem;justify-content:center;margin:1.5rem 0;flex-wrap:wrap}
+.pill{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:2px;padding:0.4rem 1rem;border-radius:2px;text-transform:uppercase}
+.pill-sniper{background:rgba(255,107,53,0.15);color:var(--sniper);border:1px solid rgba(255,107,53,0.3)}
+.pill-sr{background:rgba(139,92,246,0.15);color:var(--sr);border:1px solid rgba(139,92,246,0.3)}
+.pill-joint{background:rgba(34,211,238,0.15);color:var(--joint);border:1px solid rgba(34,211,238,0.3)}
+
+.section-num{font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem}
+.section-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:clamp(1.4rem,3vw,2.2rem);letter-spacing:1px;text-transform:uppercase;color:var(--cream);margin-bottom:0.6rem;line-height:1.15;border-left:4px solid var(--gold);padding-left:1rem}
+.section-lead{font-size:0.95rem;color:var(--khaki-light);max-width:900px;line-height:1.7;margin-bottom:1.5rem}
+
+.map-container{width:100%;height:500px;border:1px solid rgba(196,177,125,0.2);border-radius:2px;margin:1rem 0;position:relative}
+.map-container .map-label{position:absolute;top:10px;left:50px;z-index:500;background:rgba(26,26,26,0.92);border:1px solid var(--gold);padding:0.25rem 0.7rem;font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start}
+@media(max-width:1000px){.two-col{grid-template-columns:1fr}}
+
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0.8rem;margin:1rem 0}
+.stat-card{background:rgba(42,54,33,0.5);border-left:3px solid var(--gold);padding:0.6rem 0.8rem}
+.stat-card .value{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.3rem;color:var(--gold-bright)}
+.stat-card .label{font-family:'Oswald',sans-serif;font-weight:300;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--khaki);margin-top:0.15rem}
+
+.fac-table{width:100%;border-collapse:collapse;margin:0.8rem 0;font-size:0.82rem}
+.fac-table th{font-family:'Oswald',sans-serif;font-weight:500;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;text-align:left;padding:0.5rem 0.6rem;border-bottom:2px solid var(--gold);color:var(--gold)}
+.fac-table td{padding:0.4rem 0.6rem;border-bottom:1px solid rgba(196,177,125,0.08);color:var(--khaki-light);vertical-align:top}
+.fac-table td:first-child{color:var(--cream);font-weight:600;white-space:nowrap}
+.fac-table .coord{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--gold);white-space:nowrap}
+.fac-table tr:hover td{background:rgba(42,54,33,0.4)}
+.fac-table .cat-header td{background:rgba(42,54,33,0.3);font-family:'Oswald',sans-serif;font-weight:500;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;padding:0.6rem;border-bottom:1px solid var(--gold)}
+.fac-table .cat-header.sniper td{color:var(--sniper);border-bottom-color:var(--sniper)}
+.fac-table .cat-header.sr td{color:var(--sr);border-bottom-color:var(--sr)}
+.fac-table .cat-header.joint td{color:var(--joint);border-bottom-color:var(--joint)}
+
+.zone-card{background:rgba(42,54,33,0.5);border:1px solid rgba(196,177,125,0.1);border-left:4px solid var(--gold);padding:1.2rem;border-radius:2px;margin:0.8rem 0}
+.zone-card h3{font-family:'Oswald',sans-serif;font-weight:500;font-size:1.05rem;color:var(--cream);margin-bottom:0.3rem}
+.zone-card .mgrs{font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--gold);margin-bottom:0.5rem}
+.zone-card p{font-size:0.88rem;color:var(--khaki-light);line-height:1.6}
+.zone-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:900px){.zone-grid{grid-template-columns:1fr}}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;margin:0.8rem 0;padding:0.6rem;background:rgba(26,26,26,0.6);border:1px solid rgba(196,177,125,0.1)}
+.legend-item{display:flex;align-items:center;gap:0.4rem;font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:1px;text-transform:uppercase}
+.legend-dot{width:10px;height:10px;border-radius:50%;border:1px solid rgba(255,255,255,0.3)}
+.conclusion-section{background:linear-gradient(160deg,#1a1510 0%,var(--charcoal) 40%,var(--od-green-dark) 100%)}
+.final-statement{font-size:1rem;color:var(--khaki-light);line-height:1.8;max-width:950px;text-align:center;margin:0 auto 1.5rem;font-style:italic}
+footer{text-align:center;padding:1.5rem;font-family:'Oswald',sans-serif;font-size:0.65rem;letter-spacing:3px;color:var(--steel);border-top:1px solid rgba(196,177,125,0.1)}
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">FSRR–SOCOM <span>Facility Layout</span></div>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#cantonment">Cantonment</a></li>
+    <li><a href="#sniper">Sniper</a></li>
+    <li><a href="#sr">SR/Recon</a></li>
+    <li><a href="#joint">Joint Force</a></li>
+    <li><a href="#training">Training Area</a></li>
+    <li><a href="#dz">Drop Zone</a></li>
+    <li><a href="#support">Support</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="content">
+    <div class="classification">unclassified // fouo</div>
+    <div class="super-title">Camp Kibaritan Military Reservation • Bukidnon, Mindanao</div>
+    <h1><em>Satellite Training Site</em><br>Facility Layout & Site Selection</h1>
+    <div class="divider"></div>
+    <p class="subtitle">Recommended facility placement for 45 installations across 6 zones within the 42,000-hectare Camp Kibaritan Military Reservation — optimized for three mission-essential training pillars.</p>
+    <div class="mission-pills">
+      <span class="pill pill-sniper">Scout Sniper Training</span>
+      <span class="pill pill-sr">Special Reconnaissance</span>
+      <span class="pill pill-joint">SOF–Joint Force Integration</span>
+    </div>
+    <p class="meta">First Scout Ranger Regiment • Special Operations Command • Philippine Army</p>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="section-num">Section 01</div>
+  <div class="section-title">Site Overview — 45 Facilities Across 6 Zones</div>
+  <p class="section-lead">The satellite training site distributes facilities across the 4IMB's pre-designated zones to separate garrison from training, maximize range safety, and enable concurrent multi-phase operations. The cantonment (Zone 5) anchors the complex at the geographic center, with specialized training radiating outward.</p>
+  <div class="stat-row">
+    <div class="stat-card"><div class="value">45</div><div class="label">Total Facilities</div></div>
+    <div class="stat-card"><div class="value">6</div><div class="label">Zones Utilized</div></div>
+    <div class="stat-card"><div class="value">Zone 5</div><div class="label">Cantonment (21)</div></div>
+    <div class="stat-card"><div class="value">Zone 6</div><div class="label">Maneuver (6)</div></div>
+    <div class="stat-card"><div class="value">Zone 11</div><div class="label">Ranges (4)</div></div>
+    <div class="stat-card"><div class="value">Zone 1</div><div class="label">Training (6)</div></div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--sniper)"></div>Scout Sniper</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--sr)"></div>Special Recon</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--joint)"></div>Joint Force</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Command / Admin</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#888"></div>Support / Infra</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>Training Area</div>
+  </div>
+  <div class="map-container" id="map-overview"><div class="map-label">All 45 Facilities — Master Layout</div></div>
+</section>
+
+<!-- CANTONMENT -->
+<section id="cantonment">
+  <div class="section-num">Section 02</div>
+  <div class="section-title">Zone 5 — Cantonment Area (21 Facilities)</div>
+  <p class="section-lead">Zone 5 (CRTA 1) spans 1.41 km N-S by 2.42 km E-W — pre-designated as the cantonment by the 4IMB. Command and training cadre HQs occupy the northern road network; barracks and support fill the center; logistics line the western MSR; the helipad sits on the eastern edge for clear approach corridors.</p>
+  <div class="map-container" id="map-cantonment" style="height:550px;"><div class="map-label">Zone 5 — Cantonment Detail</div></div>
+  <table class="fac-table">
+    <tr><th>Facility</th><th>Coordinates</th><th>Function</th></tr>
+    <tr class="cat-header"><td colspan="3">▸ Command & Operations</td></tr>
+    <tr><td>SOCOM Satellite Camp HQ / TOC</td><td class="coord">51N XJ 80731 81175</td><td>Command and tactical operations center. Northern road frontage.</td></tr>
+    <tr><td>Joint SOF Operations Center (JSOC-Fwd)</td><td class="coord">51N XJ 81216 81177</td><td>Joint Force integration C2 node. Unified SOF-conventional command.</td></tr>
+    <tr><td>Intelligence / Targeting Cell</td><td class="coord">51N XJ 81095 81106</td><td>SCIF-capable. SR collection analysis, pattern-of-life, targeting packages.</td></tr>
+    <tr><td>Signal / Comms Node (Tactical)</td><td class="coord">51N XJ 81701 81109</td><td>HF/VHF/SATCOM. Elevated NE position for LOS to training areas.</td></tr>
+    <tr class="cat-header sniper"><td colspan="3">▸ Scout Sniper Training</td></tr>
+    <tr><td>Scout Sniper Training Cadre HQ</td><td class="coord">51N XJ 80489 81034</td><td>Administrative/instructional HQ for sniper schoolhouse and course management.</td></tr>
+    <tr><td>Classroom / Briefing Complex</td><td class="coord">51N XJ 80732 80966</td><td>Classrooms, sand tables, ballistic computer lab, briefing theater.</td></tr>
+    <tr class="cat-header sr"><td colspan="3">▸ Special Reconnaissance</td></tr>
+    <tr><td>SR / Recon Training Cadre HQ</td><td class="coord">51N XJ 80974 81036</td><td>Administrative/instructional HQ for SR courses and ISR integration.</td></tr>
+    <tr><td>Drone / UAS Operations Cell</td><td class="coord">51N XJ 81581 80969</td><td>Group 1–2 UAS launch/recovery and ISR feed integration with TOC.</td></tr>
+    <tr class="cat-header joint"><td colspan="3">▸ Joint Force Integration</td></tr>
+    <tr><td>Joint Force Liaison Quarters</td><td class="coord">51N XJ 81581 80760</td><td>Billets for AFP joint service liaisons, PAF JTAC, PN NSW, allied exchange.</td></tr>
+    <tr class="cat-header"><td colspan="3">▸ Garrison & Life Support</td></tr>
+    <tr><td>Troop Barracks (SOF Operators)</td><td class="coord">51N XJ 80611 80756</td><td>Permanent party — cadre, instructors, support personnel.</td></tr>
+    <tr><td>Transient Barracks (Students)</td><td class="coord">51N XJ 81096 80758</td><td>Rotating student billets. Scalable for visiting units during joint exercises.</td></tr>
+    <tr><td>Mess Hall / Galley</td><td class="coord">51N XJ 80854 80687</td><td>Central feeding. Between barracks clusters for equal access.</td></tr>
+    <tr><td>Aid Station / Medical Clinic</td><td class="coord">51N XJ 81460 80829</td><td>BAS with trauma stabilization. Near helipad for MEDEVAC.</td></tr>
+    <tr><td>Helipad (2-spot, H-60/H-47)</td><td class="coord">51N XJ 81945 80901</td><td>Eastern edge. Clear approach/departure. MEDEVAC standby.</td></tr>
+    <tr><td>PT Area / Gym</td><td class="coord">51N XJ 81339 80620</td><td>PT grounds, functional fitness, pull-up bars. Central location.</td></tr>
+    <tr><td>Arms Room / Armory</td><td class="coord">51N XJ 80491 80547</td><td>Hardened weapons/optics storage. Adjacent to motor pool.</td></tr>
+    <tr><td>Motor Pool / Vehicle Maintenance</td><td class="coord">51N XJ 80249 80406</td><td>SW corner on main N-S route for convoy access.</td></tr>
+    <tr><td>Logistics / Supply Warehouse</td><td class="coord">51N XJ 80612 80477</td><td>General stores, rations, supply chain management.</td></tr>
+    <tr><td>Water Point / Treatment</td><td class="coord">51N XJ 81098 80270</td><td>Purification from nearby river. Gravity-fed to cantonment.</td></tr>
+    <tr><td>Generator Farm / Power</td><td class="coord">51N XJ 80370 80337</td><td>Primary/backup generation. SW — noise separation from HQ.</td></tr>
+    <tr><td>Entry Control Point (Main Gate)</td><td class="coord">51N XJ 80856 80130</td><td>Southern access. Guard post, vehicle inspection, ID check.</td></tr>
+  </table>
+</section>
+
+<!-- SCOUT SNIPER -->
+<section id="sniper">
+  <div class="section-num">Section 03 — Scout Sniper</div>
+  <div class="section-title" style="border-left-color:var(--sniper);">Scout Sniper Training Facilities</div>
+  <p class="section-lead">Sniper training is distributed across three zones for progressive skill development: Zone 6 for fundamentals and fieldcraft (KD range, stalking, OP construction), Zone 11 for precision marksmanship (long-range to 1,200m+, moving targets, NVG fire), and Zone 1 for full-spectrum FTX including 1,500m target interdiction and multi-day hide site operations.</p>
+  <div class="two-col">
+    <div>
+      <div class="zone-card" style="border-left-color:var(--sniper);">
+        <h3>Zone 6 — Fieldcraft & Fundamentals</h3>
+        <div class="mgrs">1.31 km × 1.89 km • Adjacent to cantonment</div>
+        <table class="fac-table">
+          <tr><td>Scout Sniper KD Range (600m)</td><td class="coord">51N XJ 79214 80044</td></tr>
+          <tr><td>Unknown Distance Range (800m)</td><td class="coord">51N XJ 78836 79781</td></tr>
+          <tr><td>OP Training Complex</td><td class="coord">51N XJ 79783 79916</td></tr>
+          <tr><td>Fieldcraft Training Area</td><td class="coord">51N XJ 79215 79652</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">Ghillie construction, range estimation, wind reading, stalking, OP/LP concealment and reporting. Walk-to distance from cantonment.</p>
+      </div>
+      <div class="zone-card" style="border-left-color:var(--sniper);">
+        <h3>Zone 11 — Precision Ranges</h3>
+        <div class="mgrs">2.28 km × 2.39 km • 2.9 km from cantonment</div>
+        <table class="fac-table">
+          <tr><td>Long-Range Sniper Complex (1,200m+)</td><td class="coord">51N XJ 79835 78433</td></tr>
+          <tr><td>Moving Target Range</td><td class="coord">51N XJ 80316 77981</td></tr>
+          <tr><td>Night Fire / NVG Range</td><td class="coord">51N XJ 79599 77752</td></tr>
+          <tr><td>Zeroing / Confirmation Range</td><td class="coord">51N XJ 80552 78776</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">Multiple firing points with natural backstops. Extended-range precision, moving target tracking, thermal/NVG night fire.</p>
+      </div>
+    </div>
+    <div>
+      <div class="zone-card" style="border-left-color:var(--sniper);">
+        <h3>Zone 1 — Sniper FTX Area</h3>
+        <div class="mgrs">~19,767 Ha eastern training area</div>
+        <table class="fac-table">
+          <tr><td>Sniper Field Training Area</td><td class="coord">51N XJ 84062 83565</td></tr>
+          <tr><td>Target Interdiction Range (1,500m)</td><td class="coord">51N XJ 83517 81904</td></tr>
+          <tr><td>OP / Hide Training (Multi-Day)</td><td class="coord">51P XJ 86258 85786</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">Extended stalking across varied terrain. 1,500m target interdiction using natural elevation. Multi-day hide site ops with real-time reporting to TOC. Culminating exercise.</p>
+      </div>
+      <div class="map-container" id="map-sniper" style="height:400px;"><div class="map-label">Scout Sniper Facilities</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SPECIAL RECONNAISSANCE -->
+<section id="sr">
+  <div class="section-num">Section 04 — Special Reconnaissance</div>
+  <div class="section-title" style="border-left-color:var(--sr);">Special Reconnaissance Training</div>
+  <p class="section-lead">SR training leverages the cantonment's intelligence cell and UAS operations, Zone 6's urban ops facility for close-target recon, Zone 9 for insertion/extraction and tactical SIGINT, and Zone 1's vast area for extended-duration SR missions with live reporting chains back to the JSOC-Fwd.</p>
+  <div class="two-col">
+    <div>
+      <div class="zone-card" style="border-left-color:var(--sr);">
+        <h3>Zone 5 — SR Command & ISR</h3>
+        <table class="fac-table">
+          <tr><td>SR / Recon Training Cadre HQ</td><td class="coord">51N XJ 80974 81036</td></tr>
+          <tr><td>Intelligence / Targeting Cell</td><td class="coord">51N XJ 81095 81106</td></tr>
+          <tr><td>Drone / UAS Operations Cell</td><td class="coord">51N XJ 81581 80969</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">ISR collection management, pattern-of-life analysis, targeting. UAS feeds integrate with SR team reports for real-time intelligence fusion.</p>
+      </div>
+      <div class="zone-card" style="border-left-color:var(--sr);">
+        <h3>Zone 6 — Urban / Close-Target Recon</h3>
+        <table class="fac-table">
+          <tr><td>Urban Ops Training Facility</td><td class="coord">51N XJ 79595 79523</td></tr>
+          <tr><td>OP Training Complex</td><td class="coord">51N XJ 79783 79916</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">Modular MOUT facility for close-target recon of structures and compounds. OP construction and concealed reporting positions.</p>
+      </div>
+      <div class="zone-card" style="border-left-color:var(--sr);">
+        <h3>Zone 9 — Advanced SR Drills</h3>
+        <div class="mgrs">3.13 km × 2.06 km • CRTA 3 expansion</div>
+        <table class="fac-table">
+          <tr><td>SR Insertion / Extraction Drills</td><td class="coord">51N XJ 80556 82149</td></tr>
+          <tr><td>Tactical SIGINT / EW Training</td><td class="coord">51N XJ 80965 83083</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">Infiltration/exfiltration methods: foot, vehicle, rotary-wing, waterborne. SIGINT collection and EW familiarization for SR teams.</p>
+      </div>
+    </div>
+    <div>
+      <div class="zone-card" style="border-left-color:var(--sr);">
+        <h3>Zone 1 — SR Mission Area</h3>
+        <table class="fac-table">
+          <tr><td>SR Team Insertion Point Alpha</td><td class="coord">51N XJ 85167 83016</td></tr>
+          <tr><td>Long Duration Patrol Base RON-1</td><td class="coord">51P XJ 87365 84684</td></tr>
+          <tr><td>OP / Hide Training (Multi-Day)</td><td class="coord">51P XJ 86258 85786</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">Full-mission-profile SR: team insertion, movement to NAI, 48–72 hr observation, reporting over tactical comms, coordinated extraction. Kalatungan proximity enables realistic border/boundary SR scenarios.</p>
+      </div>
+      <div class="map-container" id="map-sr" style="height:400px;"><div class="map-label">SR / Recon Facilities</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- JOINT FORCE -->
+<section id="joint">
+  <div class="section-num">Section 05 — Joint Force</div>
+  <div class="section-title" style="border-left-color:var(--joint);">Army SOF — Joint Force Integration</div>
+  <p class="section-lead">Designed from the ground up for joint operations. The JSOC-Forward co-locates Army SOF with PAF, PN, and allied liaison elements. Zone 9 provides dedicated joint exercise space for JTAC certification, fire support coordination, and combined SOF-conventional maneuver. Zone 8's 4,584-hectare live fire sector enables battalion-scale combined arms integrating air, ground, and maritime components.</p>
+  <div class="two-col">
+    <div>
+      <div class="zone-card" style="border-left-color:var(--joint);">
+        <h3>Zone 5 — Joint C2 Architecture</h3>
+        <table class="fac-table">
+          <tr><td>JSOC-Forward Operations Center</td><td class="coord">51N XJ 81216 81177</td></tr>
+          <tr><td>Joint Force Liaison Quarters</td><td class="coord">51N XJ 81581 80760</td></tr>
+          <tr><td>Signal / Comms (Multi-Service)</td><td class="coord">51N XJ 81701 81109</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">Unified command: Army SOCOM, PAF tactical air control, PN Naval Special Warfare, PNP-SAF, and allied exchange under a single JOC.</p>
+      </div>
+      <div class="zone-card" style="border-left-color:var(--joint);">
+        <h3>Zone 9 — Joint Exercise Area</h3>
+        <div class="mgrs">3.13 km × 2.06 km • CRTA 3 expansion</div>
+        <table class="fac-table">
+          <tr><td>Joint SOF-Conventional Exercise Area</td><td class="coord">51N XJ 80554 82771</td></tr>
+          <tr><td>JTAC / Fire Support Coordination</td><td class="coord">51N XJ 80139 83391</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">SOF integration with Infantry Division maneuver units. JTAC certification, CAS coordination with PAF, fire support planning, joint targeting, terminal guidance operations.</p>
+      </div>
+    </div>
+    <div>
+      <div class="zone-card" style="border-left-color:var(--joint);">
+        <h3>Zone 1 — Combined FTX</h3>
+        <table class="fac-table">
+          <tr><td>Joint Force FTX Assembly Area</td><td class="coord">51N XJ 82964 82454</td></tr>
+        </table>
+        <p style="margin-top:0.5rem;">Assembly/staging for combined exercises. SR teams hand off intelligence to conventional forces, sniper teams provide overwatch for infantry advance, JTAC elements coordinate CAS.</p>
+      </div>
+      <div class="zone-card" style="border-left-color:var(--joint);">
+        <h3>Zone 8 — Combined Arms Live Fire</h3>
+        <div class="mgrs">~4,584 Ha • 11.3 km × 8.6 km • NW sector</div>
+        <p>Battalion-scale combined arms with live fire. Integrates SOF sniper overwatch, SR target handoff, JTAC-controlled CAS, and conventional infantry assault. 4,584 Ha supports multiple concurrent exercise lanes with safety fans.</p>
+      </div>
+      <div class="map-container" id="map-joint" style="height:350px;"><div class="map-label">Joint Force Facilities</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRAINING AREA -->
+<section id="training">
+  <div class="section-num">Section 06</div>
+  <div class="section-title">Zone 1 — Primary Training Area & Field Sites</div>
+  <p class="section-lead">The ~19,767 Ha eastern training area hosts six pre-surveyed field sites spanning from the cantonment boundary to the approaches of Mt. Kalatungan (2,860m), enabling progressive difficulty from lowland operations through montane jungle to mountain warfare.</p>
+  <div class="map-container" id="map-training" style="height:500px;"><div class="map-label">Zone 1 — Field Training Sites</div></div>
+  <table class="fac-table" style="max-width:900px;">
+    <tr><th>Field Site</th><th>Coordinates</th><th>Purpose</th></tr>
+    <tr><td>Sniper Field Training Area</td><td class="coord">51N XJ 84062 83565</td><td>Extended stalking lanes. Multi-terrain field firing positions.</td></tr>
+    <tr><td>Target Interdiction (1,500m)</td><td class="coord">51N XJ 83517 81904</td><td>Extreme long-range engagement. Natural ridgeline elevation advantage.</td></tr>
+    <tr><td>SR Insertion Point Alpha</td><td class="coord">51N XJ 85167 83016</td><td>Jump-off for SR missions into the deep eastern training area.</td></tr>
+    <tr><td>Patrol Base RON-1</td><td class="coord">51P XJ 87365 84684</td><td>Pre-surveyed 5–7 day extended ops. Water source adjacent.</td></tr>
+    <tr><td>OP / Hide Training</td><td class="coord">51P XJ 86258 85786</td><td>Multi-day OP with live reporting. Approaching montane forest.</td></tr>
+    <tr><td>Joint Force FTX Assembly</td><td class="coord">51N XJ 82964 82454</td><td>Combined SOF-conventional field training exercises.</td></tr>
+  </table>
+</section>
+
+<!-- DROP ZONE -->
+<section id="dz">
+  <div class="section-num">Section 07</div>
+  <div class="section-title" style="border-left-color:var(--blue-mil);">Zone 12 — Drop Zone & Airborne Operations</div>
+  <div class="two-col">
+    <div>
+      <p class="section-lead">Zone 12 (Mobilization Area) — ~1,576 Ha of open highland terrain at 700–800m ASL. Supports static-line, MFF, helicopter insertion/extraction, and air assault. Enables insertion phase of SR missions and sniper deployments, and joint airborne exercises with PAF airlift.</p>
+      <div class="stat-row" style="grid-template-columns:1fr 1fr;">
+        <div class="stat-card" style="border-left-color:var(--blue-mil);"><div class="value">~1,576 Ha</div><div class="label">Computed Area</div></div>
+        <div class="stat-card" style="border-left-color:var(--blue-mil);"><div class="value">7.7 km</div><div class="label">From Cantonment</div></div>
+      </div>
+    </div>
+    <div><div class="map-container" id="map-dz" style="height:350px;"><div class="map-label">Zone 12 — Drop Zone</div></div></div>
+  </div>
+</section>
+
+<!-- SUPPORT -->
+<section id="support">
+  <div class="section-num">Section 08</div>
+  <div class="section-title">Supporting Zones & Infrastructure</div>
+  <div class="zone-grid">
+    <div class="zone-card">
+      <h3>Zone 3 — Base Support Facilities</h3>
+      <div class="mgrs">2.91 km × 3.03 km • 2.2 km from cantonment</div>
+      <table class="fac-table">
+        <tr><td>Forward Supply Point</td><td class="coord">51N XJ 81216 82523</td></tr>
+        <tr><td>Equipment Maintenance Bay</td><td class="coord">51N XJ 81821 82815</td></tr>
+        <tr><td>Aerial Resupply Staging</td><td class="coord">51N XJ 82430 82238</td></tr>
+        <tr><td>Joint Logistics Hub</td><td class="coord">51N XJ 81517 83103</td></tr>
+      </table>
+    </div>
+    <div class="zone-card">
+      <h3>Zone 6 — Additional Training</h3>
+      <div class="mgrs">1.31 km × 1.89 km • Adjacent</div>
+      <table class="fac-table">
+        <tr><td>Urban Ops Training Facility</td><td class="coord">51N XJ 79595 79523</td></tr>
+        <tr><td>Obstacle / Confidence Course</td><td class="coord">51N XJ 79027 79391</td></tr>
+      </table>
+    </div>
+    <div class="zone-card">
+      <h3>Zone 13 — Communication Facilities</h3>
+      <div class="mgrs">100 Ha • 8.0 km from cantonment</div>
+      <p>Signal infrastructure, relay stations, alternate C2 for multi-service tactical comms.</p>
+    </div>
+    <div class="zone-card">
+      <h3>Zone 19 — Ammo Dump Complex</h3>
+      <div class="mgrs">100 Ha • 13.2 km from cantonment</div>
+      <p>Ammunition storage. Maximum safety standoff. Sustains live fire across all ranges.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONCLUSION -->
+<section class="conclusion-section" id="conclusion">
+  <div class="section-num">Section 09</div>
+  <div class="section-title">Site Selection Summary</div>
+  <p class="final-statement">The 45-facility layout transforms Camp Kibaritan's Zone 5 into a purpose-built satellite training site for three mission-essential pillars: scout sniper training with progressive ranges from 600m through 1,500m, special reconnaissance with full-mission-profile capability from insertion to extraction, and Army SOF integration into the Joint Force through a co-located operations center and dedicated combined exercise areas. Every facility is geo-located within pre-designated zones — requiring no reclassification — ready for development upon approval.</p>
+  <div class="stat-row" style="max-width:800px;margin:1rem auto;">
+    <div class="stat-card" style="text-align:center;border-left:none;border-top:3px solid var(--sniper);"><div class="value">14</div><div class="label">Sniper Facilities</div></div>
+    <div class="stat-card" style="text-align:center;border-left:none;border-top:3px solid var(--sr);"><div class="value">10</div><div class="label">SR / Recon</div></div>
+    <div class="stat-card" style="text-align:center;border-left:none;border-top:3px solid var(--joint);"><div class="value">6</div><div class="label">Joint Force</div></div>
+    <div class="stat-card" style="text-align:center;border-left:none;border-top:3px solid var(--gold);"><div class="value">15</div><div class="label">Support / Infra</div></div>
+  </div>
+  <div class="mission-pills" style="justify-content:center;margin-top:1.5rem;">
+    <span class="pill pill-sniper">Scout Sniper</span>
+    <span class="pill pill-sr">Special Reconnaissance</span>
+    <span class="pill pill-joint">SOF–Joint Force</span>
+  </div>
+  <div style="text-align:center;margin-top:1.5rem;">
+    <p style="font-family:'Oswald',sans-serif;font-size:0.7rem;letter-spacing:3px;color:var(--steel);">First Scout Ranger Regiment &bull; Special Operations Command &bull; Philippine Army</p>
+  </div>
+</section>
+
+<footer>FSRR–SOCOM Satellite Training Site &bull; Camp Kibaritan Military Reservation &bull; Bukidnon, Mindanao</footer>
+<script>
+const BND = [
+  [7.8296,124.7056],[7.8285,124.7069],[7.8273,124.7082],[7.8269,124.7084],
+  [7.8243,124.7075],[7.8234,124.7074],[7.8233,124.7072],[7.8220,124.7037],
+  [7.8221,124.7028],[7.8186,124.7019],[7.8170,124.6993],[7.8182,124.6979],
+  [7.8195,124.6965],[7.8168,124.6941],[7.8169,124.6940],[7.8144,124.6917],
+  [7.8125,124.6901],[7.8124,124.6900],[7.8103,124.6882],[7.8082,124.6865],
+  [7.8081,124.6864],[7.8061,124.6847],[7.8036,124.6825],
+  [7.8041,124.6817],[7.8051,124.6811],[7.8087,124.6823],
+  [7.8086,124.6795],[7.8084,124.6783],[7.8090,124.6779],
+  [7.8094,124.6776],[7.8109,124.6783],[7.8120,124.6790],[7.8128,124.6788],
+  [7.9582,124.5123],[8.0308,124.5671],[8.0659,124.5973],
+  [8.0387,124.6398],[8.0204,124.6617],[8.0615,124.7298],
+  [7.9294,124.7864],[7.9325,124.6962],[7.9137,124.6936],
+  [7.8873,124.6899],[7.8290,124.6871],[7.8296,124.7056]
+];
+const bS = {color:'#C9A93E',weight:1.5,opacity:0.5,fillColor:'#C9A93E',fillOpacity:0.02};
+
+const Z5 = [[7.9578,124.6341],[7.9602,124.6537],[7.9704,124.6540],[7.9694,124.6320]];
+const Z6 = [[7.9489,124.6173],[7.9489,124.6345],[7.9607,124.6345],[7.9607,124.6173]];
+const Z9 = [[7.9689,124.6288],[7.9689,124.6475],[7.9970,124.6475],[7.9970,124.6288]];
+const Z11= [[7.9294,124.6228],[7.9294,124.6445],[7.9499,124.6445],[7.9499,124.6228]];
+const Z1 = [[7.886,124.640],[7.886,124.785],[8.065,124.785],[8.065,124.640]];
+const Z8 = [[7.960,124.555],[7.960,124.633],[8.061,124.633],[8.061,124.555]];
+const Z12= [[7.885,124.597],[7.885,124.630],[7.917,124.630],[7.917,124.597]];
+const Z3 = [[7.9702,124.6359],[7.9702,124.6634],[7.9964,124.6634],[7.9964,124.6359]];
+const Z20W=[[7.900,124.513],[7.900,124.570],[8.000,124.570],[8.000,124.513]];
+const Z20NE=[[8.002,124.664],[8.002,124.752],[8.060,124.752],[8.060,124.664]];
+
+const COL = {sniper:'#FF6B35',sr:'#8B5CF6',joint:'#22D3EE',cmd:'#C9A93E',support:'#888888',field:'#4ade80'};
+
+const F = {
+  z5: [
+    {n:'SOCOM Satellite Camp HQ / TOC',         ll:[7.96851,124.63970], c:'cmd'},
+    {n:'JSOC-Forward Operations Center',         ll:[7.96851,124.64410], c:'joint'},
+    {n:'Intelligence / Targeting Cell',          ll:[7.96788,124.64300], c:'sr'},
+    {n:'Signal / Comms Node',                    ll:[7.96788,124.64850], c:'joint'},
+    {n:'Scout Sniper Training Cadre HQ',         ll:[7.96725,124.63750], c:'sniper'},
+    {n:'Classroom / Briefing Complex',           ll:[7.96662,124.63970], c:'sniper'},
+    {n:'SR / Recon Training Cadre HQ',           ll:[7.96725,124.64190], c:'sr'},
+    {n:'Drone / UAS Operations Cell',            ll:[7.96662,124.64740], c:'sr'},
+    {n:'Joint Force Liaison Quarters',           ll:[7.96473,124.64740], c:'joint'},
+    {n:'Troop Barracks (SOF Operators)',          ll:[7.96473,124.63860], c:'support'},
+    {n:'Transient Barracks',                     ll:[7.96473,124.64300], c:'support'},
+    {n:'Mess Hall / Galley',                     ll:[7.96410,124.64080], c:'support'},
+    {n:'Aid Station / Medical Clinic',           ll:[7.96536,124.64630], c:'support'},
+    {n:'Helipad (2-spot)',                       ll:[7.96599,124.65070], c:'support'},
+    {n:'PT Area / Gym',                          ll:[7.96347,124.64520], c:'support'},
+    {n:'Arms Room / Armory',                     ll:[7.96284,124.63750], c:'support'},
+    {n:'Motor Pool',                             ll:[7.96158,124.63530], c:'support'},
+    {n:'Logistics / Supply',                     ll:[7.96221,124.63860], c:'support'},
+    {n:'Water Point',                            ll:[7.96032,124.64300], c:'support'},
+    {n:'Generator Farm',                         ll:[7.96095,124.63640], c:'support'},
+    {n:'Entry Control Point',                    ll:[7.95906,124.64080], c:'support'},
+  ],
+  z6: [
+    {n:'Scout Sniper KD Range (600m)',           ll:[7.95834,124.62590], c:'sniper'},
+    {n:'Unknown Distance Range (800m)',          ll:[7.95598,124.62246], c:'sniper'},
+    {n:'Urban Ops Training Facility',            ll:[7.95362,124.62934], c:'sr'},
+    {n:'OP Training Complex',                    ll:[7.95716,124.63106], c:'sniper'},
+    {n:'Obstacle / Confidence Course',           ll:[7.95244,124.62418], c:'support'},
+    {n:'Fieldcraft Training Area',               ll:[7.95480,124.62590], c:'sniper'},
+  ],
+  z11: [
+    {n:'Long-Range Sniper Complex (1,200m+)',    ll:[7.94375,124.63148], c:'sniper'},
+    {n:'Moving Target Range',                    ll:[7.93965,124.63582], c:'sniper'},
+    {n:'Night Fire / NVG Range',                 ll:[7.93760,124.62931], c:'sniper'},
+    {n:'Zeroing / Confirmation Range',           ll:[7.94683,124.63799], c:'sniper'},
+  ],
+  z9: [
+    {n:'Joint SOF-Conventional Exercise Area',   ll:[7.98295,124.63815], c:'joint'},
+    {n:'JTAC / Fire Support Coordination',       ll:[7.98857,124.63441], c:'joint'},
+    {n:'Tactical SIGINT / EW Training',          ll:[7.98576,124.64189], c:'sr'},
+    {n:'SR Insertion / Extraction Drills',       ll:[7.97733,124.63815], c:'sr'},
+  ],
+  z3: [
+    {n:'Forward Supply Point',                   ll:[7.98068,124.64415], c:'support'},
+    {n:'Equipment Maintenance Bay',              ll:[7.98330,124.64965], c:'support'},
+    {n:'Aerial Resupply Staging',                ll:[7.97806,124.65515], c:'support'},
+    {n:'Joint Logistics Hub',                    ll:[7.98592,124.64690], c:'support'},
+  ],
+  z1: [
+    {n:'Sniper Field Training Area (FTX)',       ll:[7.99000,124.67000], c:'sniper'},
+    {n:'Target Interdiction Range (1,500m)',     ll:[7.97500,124.66500], c:'sniper'},
+    {n:'SR Team Insertion Point Alpha',          ll:[7.98500,124.68000], c:'sr'},
+    {n:'Long Duration Patrol Base RON-1',        ll:[8.00000,124.70000], c:'sr'},
+    {n:'Observation Post / Hide Training',       ll:[8.01000,124.69000], c:'field'},
+    {n:'Joint Force FTX Assembly Area',          ll:[7.98000,124.66000], c:'joint'},
+  ],
+};
+
+function mkIcon(color, size) {
+  size = size || 10;
+  return L.divIcon({
+    html: '<div style="background:'+color+';width:'+size+'px;height:'+size+'px;border-radius:50%;border:2px solid rgba(255,255,255,0.8);box-shadow:0 0 6px '+color+';"></div>',
+    className:'', iconSize:[size,size], iconAnchor:[size/2,size/2]
+  });
+}
+
+function addFacilities(map, zones, iconSize) {
+  iconSize = iconSize || 10;
+  Object.keys(zones).forEach(function(zk) {
+    if (!F[zk]) return;
+    F[zk].forEach(function(f) {
+      L.marker(f.ll, {icon: mkIcon(COL[f.c], iconSize)})
+        .addTo(map)
+        .bindPopup('<b style="color:'+COL[f.c]+'">'+f.n+'</b>');
+    });
+  });
+}
+
+function addZonePoly(map, coords, color, name, opacity) {
+  opacity = opacity || 0.15;
+  L.polygon(coords, {color:color,weight:2,opacity:0.7,fillColor:color,fillOpacity:opacity})
+    .addTo(map).bindTooltip(name, {sticky:true});
+}
+
+function mk(id, center, zoom) {
+
+  const map = L.map(id).setView(center, zoom);
+
+  // Base Layers
+  const imagery = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { maxZoom: 19, attribution: 'Tiles © Esri' }
+  );
+
+  const topo = L.tileLayer(
+    'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    { maxZoom: 17, attribution: '© OpenTopoMap contributors' }
+  );
+
+  imagery.addTo(map); // default
+
+  const baseMaps = {
+    "Satellite Imagery": imagery,
+    "Topographic (Contours)": topo
+  };
+
+  L.control.layers(baseMaps).addTo(map);
+
+  if (typeof BND !== 'undefined') {
+    const poly = L.polygon(BND, bS || {}).addTo(map);
+    map.fitBounds(poly.getBounds());
+  }
+
+  return map;
+}
+
+// MAP 1: Overview - all facilities
+var m1 = mk('map-overview', [7.958, 124.645], 12);
+addZonePoly(m1, Z5, '#00CED1', 'Zone 5: Cantonment');
+addZonePoly(m1, Z6, '#FF6B35', 'Zone 6: Maneuver');
+addZonePoly(m1, Z11,'#FF6B35', 'Zone 11: Ranges');
+addZonePoly(m1, Z9, '#22D3EE', 'Zone 9: Joint');
+addZonePoly(m1, Z3, '#888', 'Zone 3: Support');
+addZonePoly(m1, Z1, '#4ade80', 'Zone 1: Training', 0.08);
+addZonePoly(m1, Z8, '#FF3333', 'Zone 8: Live Fire', 0.08);
+addZonePoly(m1, Z12,'#4A90D9', 'Zone 12: DZ', 0.12);
+addFacilities(m1, {z5:1,z6:1,z11:1,z9:1,z3:1,z1:1}, 8);
+
+// MAP 2: Cantonment detail
+var m2 = mk('map-cantonment', [7.9645, 124.6420], 15);
+addZonePoly(m2, Z5, '#00CED1', 'Zone 5: Cantonment', 0.1);
+addFacilities(m2, {z5:1}, 12);
+
+// MAP 3: Sniper facilities
+var m3 = mk('map-sniper', [7.955, 124.637], 13);
+addZonePoly(m3, Z5, '#00CED1', 'Zone 5', 0.05);
+addZonePoly(m3, Z6, '#FF6B35', 'Zone 6: Fieldcraft', 0.15);
+addZonePoly(m3, Z11,'#FF6B35', 'Zone 11: Precision Ranges', 0.15);
+F.z5.filter(function(f){return f.c==='sniper';}).forEach(function(f){
+  L.marker(f.ll,{icon:mkIcon(COL.sniper,10)}).addTo(m3).bindPopup('<b style="color:#FF6B35">'+f.n+'</b>');
+});
+addFacilities(m3, {z6:1,z11:1}, 12);
+
+// MAP 4: SR facilities
+var m4 = mk('map-sr', [7.975, 124.648], 13);
+addZonePoly(m4, Z5, '#00CED1', 'Zone 5', 0.05);
+addZonePoly(m4, Z6, '#8B5CF6', 'Zone 6', 0.1);
+addZonePoly(m4, Z9, '#8B5CF6', 'Zone 9: SR Drills', 0.15);
+F.z5.filter(function(f){return f.c==='sr';}).forEach(function(f){
+  L.marker(f.ll,{icon:mkIcon(COL.sr,10)}).addTo(m4).bindPopup('<b style="color:#8B5CF6">'+f.n+'</b>');
+});
+F.z6.filter(function(f){return f.c==='sr';}).forEach(function(f){
+  L.marker(f.ll,{icon:mkIcon(COL.sr,12)}).addTo(m4).bindPopup('<b style="color:#8B5CF6">'+f.n+'</b>');
+});
+addFacilities(m4, {z9:1}, 12);
+F.z1.filter(function(f){return f.c==='sr';}).forEach(function(f){
+  L.marker(f.ll,{icon:mkIcon(COL.sr,10)}).addTo(m4).bindPopup('<b style="color:#8B5CF6">'+f.n+'</b>');
+});
+
+// MAP 5: Joint Force
+var m5 = mk('map-joint', [7.975, 124.640], 12.5);
+addZonePoly(m5, Z5, '#00CED1', 'Zone 5', 0.05);
+addZonePoly(m5, Z9, '#22D3EE', 'Zone 9: Joint Exercise', 0.15);
+addZonePoly(m5, Z8, '#FF3333', 'Zone 8: Live Fire', 0.1);
+F.z5.filter(function(f){return f.c==='joint';}).forEach(function(f){
+  L.marker(f.ll,{icon:mkIcon(COL.joint,10)}).addTo(m5).bindPopup('<b style="color:#22D3EE">'+f.n+'</b>');
+});
+addFacilities(m5, {z9:1}, 12);
+F.z1.filter(function(f){return f.c==='joint';}).forEach(function(f){
+  L.marker(f.ll,{icon:mkIcon(COL.joint,10)}).addTo(m5).bindPopup('<b style="color:#22D3EE">'+f.n+'</b>');
+});
+
+// MAP 6: Training area field sites
+var m6 = mk('map-training', [7.990, 124.675], 12);
+addZonePoly(m6, Z1, '#4ade80', 'Zone 1: Training', 0.08);
+addZonePoly(m6, Z5, '#00CED1', 'Zone 5', 0.05);
+addZonePoly(m6, Z20NE,'#1B8C1B', 'Zone 20NE: Mountain', 0.1);
+addFacilities(m6, {z1:1}, 12);
+
+// MAP 7: Drop Zone
+var m7 = mk('map-dz', [7.920, 124.618], 13);
+addZonePoly(m7, Z12,'#4A90D9', 'Zone 12: Drop Zone', 0.2);
+addZonePoly(m7, Z5, '#00CED1', 'Zone 5', 0.05);
+L.polyline([[7.9641,124.6430],[7.9011,124.6133]],{color:'rgba(201,169,62,0.4)',weight:1,dashArray:'6,4'}).addTo(m7);
+</script>
+</body>
+</html>
